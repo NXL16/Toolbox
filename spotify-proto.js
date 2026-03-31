@@ -880,32 +880,35 @@ try {
 // ====================== PREMIUM CORE ======================
 function processMapObj(obj) {
     const now = new Date();
-    now.setDate(now.getDate() + 365);
+    now.setFullYear(now.getFullYear() + 1);
     const expiry = now.toISOString();
 
+    // === PHẦN QUAN TRỌNG NHẤT ĐỂ ẨN NÚT MUA PREMIUM ===
     obj['product'] = { stringValue: 'premium' };
     obj['catalogue'] = { stringValue: 'premium' };
     obj['type'] = { stringValue: 'premium' };
     obj['product-expiry'] = { stringValue: expiry };
     obj['ads'] = { boolValue: false };
     obj['financial-product'] = { stringValue: 'pr:premium,tc:0' };
-    obj['streaming-rules'] = { stringValue: '' };
 
+    obj['show-free-tier-upsell'] = { boolValue: false };     // Quan trọng
+    obj['premium'] = { boolValue: true };
+    obj['is-premium'] = { boolValue: true };
+    obj['user-type'] = { stringValue: 'premium' };
+    obj['upsell'] = { stringValue: 'hide' };
+
+    // Tính năng bổ sung
     obj['offline'] = { boolValue: true };
     obj['unrestricted'] = { boolValue: true };
     obj['offline-backup'] = { stringValue: 'UNRESTRICTED' };
-    obj['lyrics-offline'] = { boolValue: true };
     obj['smart-shuffle'] = { stringValue: 'AVAILABLE' };
     obj['high-quality'] = { stringValue: 'VERY_HIGH' };
     obj['extreme-quality'] = { boolValue: true };
-    obj['ai-playlist'] = { boolValue: true };
-    obj['audiobooks-unlimited'] = { boolValue: true };
 
-    obj['nft-disabled'] = { stringValue: '1' };
-    obj['show-free-tier-upsell'] = { boolValue: false };
-
+    // UCS flags
     obj['com.spotify.madprops.use.ucs.product.state'] = { boolValue: true };
     obj['com.spotify.madprops.delivered.by.ucs'] = { boolValue: true };
+    obj['com.spotify.madprops.product.state'] = { stringValue: 'premium' };
 
-    console.log(`🎵 Premium activated until ${expiry}`);
+    console.log(`🎵 Spotify Premium FULL activated until ${expiry.split('T')[0]}`);
 }
