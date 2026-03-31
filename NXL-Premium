@@ -1,5 +1,5 @@
 #!name = Advanced Toolbox 2026 (NXL-Premium)
-#!desc = Bộ công cụ Premium: YouTube, Locket, SoundCloud, Spotify (Fix Stable).
+#!desc = Bộ công cụ Premium: YouTube, Locket, SoundCloud, Spotify (Fix Stable & Login).
 #!author = NXL16
 #!system = Shadowrocket
 
@@ -13,7 +13,7 @@ AND,((DOMAIN,youtubei.googleapis.com),(PROTOCOL,UDP)),REJECT
 ^https?:\/\/api\.revenuecat\.com\/.+\/(receipts$|subscribers\/?(.*?)*$) header-del x-revenuecat-etag
 ^https?:\/\/api\.revenuecat\.com\/.+\/(receipts$|subscribers\/?(.*?)*$) header-del X-RevenueCat-ETag
 
-# Sửa lỗi Spotify lag & văng bằng cách xóa triệt để Cache & Connection ID
+# Spotify: Xóa Cache & Connection ID để tránh lag và lỗi văng Premium
 ^https?:\/\/.*-spclient\.spotify\.com\/.* header-del if-none-match
 ^https?:\/\/.*-spclient\.spotify\.com\/.* header-del etag
 ^https?:\/\/.*-spclient\.spotify\.com\/.* header-del x-spotify-connection-id
@@ -24,17 +24,21 @@ AND,((DOMAIN,youtubei.googleapis.com),(PROTOCOL,UDP)),REJECT
 ^https?:\/\/(www|s)\.youtube\.com\/api\/stats\/ads _ reject-200
 ^https?:\/\/(www|s)\.youtube\.com\/(pagead|ptracking) _ reject-200
 ^https?:\/\/s\.youtube\.com\/api\/stats\/qoe\?adcontext _ reject-200
+# Sửa link YouTube để tránh bị giới hạn ctier
 (^https?:\/\/[\w-]+\.googlevideo\.com\/(?!dclk_video_ads).+?)&ctier=L(&.+?),ctier,(.+) $1$2$3 302
 
 [Script]
 # --- YouTube Premium (No-Ads & Background Play) ---
-youtube.request = type=http-request,pattern=^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/(browse|next|player|reel\/reel_watch_sequence|get_watch),requires-body=1,max-size=-1,binary-body-mode=1,engine=jsc,script-path=https://raw.githubusercontent.com/NXL16/Toolbox/refs/heads/main/youtube.js
+youtube.request = type=http-request,pattern=^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/(browse|next|player|reel\/reel_watch_sequence|get_watch),requires-body=1,max-size=-1,binary-body-mode=1,script-path=https://raw.githubusercontent.com/NXL16/Toolbox/refs/heads/main/youtube.js
 youtube.response = type=http-response,pattern=^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/(browse|next|player|search|reel\/reel_watch_sequence|guide|account\/get_setting|get_watch),requires-body=1,max-size=-1,binary-body-mode=1,script-path=https://raw.githubusercontent.com/NXL16/Toolbox/refs/heads/main/youtube.js,argument="{"lyricLang":"vi","captionLang":"vi","blockUpload":true,"blockImmersive":true}"
 
 # --- Spotify JSON (License, Hi-Fi & Metadata) ---
+# Thêm endpoint /capabilities để mở khóa phần cứng
 spotify-json = type=http-response,pattern=^https:\/\/(spclient\.wg\.spotify\.com|.*-spclient\.spotify\.com)\/(device-capabilities\/v1\/capabilities|artistview\/v1\/artist|album-entity-view\/v2\/album),requires-body=1,max-size=-1,script-path=https://raw.githubusercontent.com/NXL16/Toolbox/refs/heads/main/spotify-json.js
+
 # --- Spotify Proto (Ads & Premium Features) ---
-spotify-proto = type=http-response,pattern=^https:\/\/ucs\.spotify\.com\/ucs\/v1\/fetch-attributes,requires-body=1,binary-body-mode=1,max-size=-1,script-path=https://raw.githubusercontent.com/NXL16/Toolbox/refs/heads/main/spotify-proto.js
+# Mở rộng pattern để bắt cả bootstrap và customize giúp tránh lỗi login
+spotify-proto = type=http-response,pattern=^https:\/\/(ucs\.spotify\.com\/ucs\/v1\/fetch-attributes|spclient\.wg\.spotify\.com\/(bootstrap\/v1\/bootstrap|user-customization-service\/v1\/customize)),requires-body=1,binary-body-mode=1,max-size=-1,script-path=https://raw.githubusercontent.com/NXL16/Toolbox/refs/heads/main/spotify-proto.js
 
 # --- SoundCloud Go+ ---
 SoundCloudGo = type=http-response,pattern=https://api-mobile.soundcloud.com/configuration/ios,requires-body=1,script-path=https://raw.githubusercontent.com/NXL16/Toolbox/refs/heads/main/soundcloud.js
@@ -46,4 +50,5 @@ locket-premium = type=http-response,pattern=^https:\/\/api\.revenuecat\.com\/.+\
 ^https?:\/\/[\w-]+\.googlevideo\.com\/initplayback.+&oad data-type=text data="" status-code=200
 
 [MITM]
-hostname = %APPEND%, *.googlevideo.com, youtubei.googleapis.com, www.youtube.com, s.youtube.com, api.revenuecat.com, api-mobile.soundcloud.com, *-spclient.spotify.com, spclient.wg.spotify.com
+# Gộp các domain Spotify thành ucs.spotify.com và spclient.wg.spotify.com
+hostname = %APPEND%, *.googlevideo.com, youtubei.googleapis.com, www.youtube.com, s.youtube.com, api.revenuecat.com, api-mobile.soundcloud.com, ucs.spotify.com, spclient.wg.spotify.com, *-spclient.spotify.com
