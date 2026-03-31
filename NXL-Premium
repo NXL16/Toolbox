@@ -1,5 +1,5 @@
-#!name = Advanced Toolbox 2026
-#!desc = Bộ công cụ Premium (Optimized): YouTube, Locket, SoundCloud, Spotify.
+#!name = Advanced Toolbox 2026 (NXL-Premium)
+#!desc = Bộ công cụ Premium: YouTube, Locket, SoundCloud, Spotify (Fix Stable).
 #!author = NXL16
 #!system = Shadowrocket
 
@@ -10,11 +10,13 @@ AND,((DOMAIN,youtubei.googleapis.com),(PROTOCOL,UDP)),REJECT
 
 [Header Rewrite]
 # Làm sạch ETag cho RevenueCat (Locket)
-^https?://api.revenuecat.com/.+/(receipts$|subscribers/?(.*?)*$) header-del x-revenuecat-etag
-^https?://api.revenuecat.com/.+/(receipts$|subscribers/?(.*?)*$) header-del X-RevenueCat-ETag
+^https?:\/\/api\.revenuecat\.com\/.+\/(receipts$|subscribers\/?(.*?)*$) header-del x-revenuecat-etag
+^https?:\/\/api\.revenuecat\.com\/.+\/(receipts$|subscribers\/?(.*?)*$) header-del X-RevenueCat-ETag
 
-# Sửa lỗi Spotify lag bằng cách xóa cache header
-http-request ^https:\/\/(spclient\.wg\.spotify\.com|.*-spclient\.spotify\.com(:443)?)\/user-customization-service\/v1\/customize$ header-del if-none-match
+# Sửa lỗi Spotify lag & văng bằng cách xóa triệt để Cache & Connection ID
+^https?:\/\/.*-spclient\.spotify\.com\/.* header-del if-none-match
+^https?:\/\/.*-spclient\.spotify\.com\/.* header-del etag
+^https?:\/\/.*-spclient\.spotify\.com\/.* header-del x-spotify-connection-id
 
 [Url Rewrite]
 # Chặn các gói tin quảng cáo của YouTube
@@ -25,15 +27,16 @@ http-request ^https:\/\/(spclient\.wg\.spotify\.com|.*-spclient\.spotify\.com(:4
 (^https?:\/\/[\w-]+\.googlevideo\.com\/(?!dclk_video_ads).+?)&ctier=L(&.+?),ctier,(.+) $1$2$3 302
 
 [Script]
-
 # --- YouTube Premium (No-Ads & Background Play) ---
 youtube.request = type=http-request,pattern=^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/(browse|next|player|reel\/reel_watch_sequence|get_watch),requires-body=1,max-size=-1,binary-body-mode=1,engine=jsc,script-path=https://raw.githubusercontent.com/NXL16/Toolbox/refs/heads/main/youtube.js
 youtube.response = type=http-response,pattern=^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/(browse|next|player|search|reel\/reel_watch_sequence|guide|account\/get_setting|get_watch),requires-body=1,max-size=-1,binary-body-mode=1,script-path=https://raw.githubusercontent.com/NXL16/Toolbox/refs/heads/main/youtube.js,argument="{"lyricLang":"vi","captionLang":"vi","blockUpload":true,"blockImmersive":true}"
 
-# --- Spotify (Premium Unlock) ---
-# Dùng spotify-proto.js bản mới để fix lag và full thông tin
+# --- Spotify (iPad Spoofing - Stable Mode) ---
+# Sử dụng JSON để giả lập iPad giúp nghe nhạc không bị nhảy bài/văng tài khoản
 spotify-json = type=http-request,pattern=^https:\/\/(spclient\.wg\.spotify\.com|.*-spclient\.spotify\.com(:443)?)\/(artistview\/v1\/artist|album-entity-view\/v2\/album)\/,requires-body=0,script-path=https://raw.githubusercontent.com/NXL16/Toolbox/refs/heads/main/spotify-json.js
-# spotify-proto = type=http-response,pattern=^https:\/\/(spclient\.wg\.spotify\.com|.*-spclient\.spotify\.com(:443)?)\/(bootstrap\/v1\/bootstrap|user-customization-service\/v1\/customize)$,requires-body=1,binary-body-mode=1,max-size=0,script-path=https://raw.githubusercontent.com/NXL16/Toolbox/refs/heads/main/spotify-proto.js
+
+# Tạm đóng Proto nếu bạn muốn ổn định tuyệt đối (Bỏ dấu # nếu muốn thử Full Premium)
+# spotify-proto = type=http-response,pattern=^https:\/\/(spclient\.wg\.spotify\.com|.*-spclient\.spotify\.com(:443)?)\/(bootstrap\/v1\/bootstrap|user-customization-service\/v1\/customize)$,requires-body=1,binary-body-mode=1,max-size=-1,script-path=https://raw.githubusercontent.com/NXL16/Toolbox/refs/heads/main/spotify-proto.js
 
 # --- SoundCloud Go+ ---
 SoundCloudGo = type=http-response,pattern=https://api-mobile.soundcloud.com/configuration/ios,requires-body=1,script-path=https://raw.githubusercontent.com/NXL16/Toolbox/refs/heads/main/soundcloud.js
@@ -45,4 +48,4 @@ locket-premium = type=http-response,pattern=^https:\/\/api\.revenuecat\.com\/.+\
 ^https?:\/\/[\w-]+\.googlevideo\.com\/initplayback.+&oad data-type=text data="" status-code=200
 
 [MITM]
-hostname = %APPEND%, *.googlevideo.com, youtubei.googleapis.com, www.youtube.com, s.youtube.com, api.revenuecat.com, api-mobile.soundcloud.com, *.spotify.com
+hostname = %APPEND%, *.googlevideo.com, youtubei.googleapis.com, www.youtube.com, s.youtube.com, api.revenuecat.com, api-mobile.soundcloud.com, *-spclient.spotify.com, spclient.wg.spotify.com
