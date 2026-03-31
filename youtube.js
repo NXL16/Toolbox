@@ -5461,13 +5461,32 @@ ${o[0][b][0]}`
                 super(e, t)
             }
             async pure() {
+                // 1. Giả lập trạng thái Premium cho tài khoản
+                this.iterate(this.message, "activeState", t => {
+                    t.activeState = "FORCED_ACTIVE"; // Ép trạng thái hoạt động
+                });
+
+                // 2. Ép logo YouTube sang Premium
+                if (this.message.items) {
+                    this.iterate(this.message, "isPremium", t => {
+                        t.isPremium = true;
+                    });
+                }
+
+                // 3. Logic xóa các mục thừa (Giữ nguyên của Linh)
                 let e = ["SPunlimited"];
-                return this.argument.blockUpload && e.push("FEuploads"), this.argument.blockImmersive && e.push("FEmusic_immersive"), this.argument.blockShorts && e.push("FEshorts"), this.iterate(this.message, "rendererItems", t => {
-                    for (let n = t.rendererItems.length - 1; n >= 0; n--) {
-                        let i = t.rendererItems[n]?.iconRender?.browseId ?? t.rendererItems[n]?.labelRender?.browseId;
-                        i && e.includes(i) && (t.rendererItems.splice(n, 1), this.needProcess = !0)
-                    }
-                }), this
+                this.argument.blockUpload && e.push("FEuploads"),
+                    this.argument.blockImmersive && e.push("FEmusic_immersive"),
+                    this.argument.blockShorts && e.push("FEshorts"),
+                    this.iterate(this.message, "rendererItems", t => {
+                        for (let n = t.rendererItems.length - 1; n >= 0; n--) {
+                            let i = t.rendererItems[n]?.iconRender?.browseId ?? t.rendererItems[n]?.labelRender?.browseId;
+                            i && e.includes(i) && (t.rendererItems.splice(n, 1), this.needProcess = !0)
+                        }
+                    });
+
+                this.needProcess = !0; // Đánh dấu để script ghi đè dữ liệu
+                return this
             }
         },
         Me = class extends G {
