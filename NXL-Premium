@@ -1,5 +1,5 @@
 #!name = Advanced Toolbox 2026 (NXL-Premium)
-#!desc = Bộ công cụ Premium: YouTube, Locket, SoundCloud, Spotify (Fix Stable & Login).
+#!desc = Bộ công cụ Premium: YouTube, Locket, SoundCloud
 #!author = NXL16
 #!system = Shadowrocket
 
@@ -12,11 +12,6 @@ AND,((DOMAIN,youtubei.googleapis.com),(PROTOCOL,UDP)),REJECT
 # Làm sạch ETag cho RevenueCat (Locket)
 ^https?:\/\/api\.revenuecat\.com\/.+\/(receipts$|subscribers\/?(.*?)*$) header-del x-revenuecat-etag
 ^https?:\/\/api\.revenuecat\.com\/.+\/(receipts$|subscribers\/?(.*?)*$) header-del X-RevenueCat-ETag
-
-# Spotify: Xóa Cache & Connection ID để tránh lag và lỗi văng Premium
-^https?:\/\/.*spotify\.com\/.* header-del if-none-match
-^https?:\/\/.*spotify\.com\/.* header-del etag
-^https?:\/\/.*spotify\.com\/.* header-del x-spotify-connection-id
 
 [Url Rewrite]
 # Chặn các gói tin quảng cáo của YouTube
@@ -31,12 +26,6 @@ AND,((DOMAIN,youtubei.googleapis.com),(PROTOCOL,UDP)),REJECT
 youtube.request = type=http-request,pattern=^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/(browse|next|player|reel\/reel_watch_sequence|get_watch),requires-body=1,max-size=-1,binary-body-mode=1,script-path=https://raw.githubusercontent.com/NXL16/Toolbox/refs/heads/main/youtube.js
 youtube.response = type=http-response,pattern=^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/(browse|next|player|search|reel\/reel_watch_sequence|guide|account\/get_setting|get_watch),requires-body=1,max-size=-1,binary-body-mode=1,script-path=https://raw.githubusercontent.com/NXL16/Toolbox/refs/heads/main/youtube.js,argument="{"lyricLang":"vi","captionLang":"vi","blockUpload":true,"blockImmersive":true}"
 
-# --- Spotify JSON (Dựa trên ảnh Proxyman của bạn - dòng device-capabilities) ---
-spotify-json = type=http-response,pattern=^https:\/\/.*spclient\.wg\.spotify\.com\/(device-capabilities\/v1\/capabilities|artistview\/v1\/artist|album-entity-view\/v2\/album),requires-body=1,max-size=-1,script-path=https://raw.githubusercontent.com/NXL16/Toolbox/refs/heads/main/spotify-json.js
-
-# --- Spotify Proto (Bắt trúng gae2-spclient từ ảnh Proxyman của bạn) ---
-spotify-proto = type=http-response,pattern=^https:\/\/(ucs\.spotify\.com|.*spclient\.spotify\.com)\/(ucs\/v1\/fetch-attributes|bootstrap\/v1\/bootstrap|user-customization-service\/v1\/customize),requires-body=1,binary-body-mode=1,max-size=-1,script-path=https://raw.githubusercontent.com/NXL16/Toolbox/refs/heads/main/spotify-proto.js
-
 # --- SoundCloud Go+ ---
 SoundCloudGo = type=http-response,pattern=https://api-mobile.soundcloud.com/configuration/ios,requires-body=1,script-path=https://raw.githubusercontent.com/NXL16/Toolbox/refs/heads/main/soundcloud.js
 
@@ -47,5 +36,4 @@ locket-premium = type=http-response,pattern=^https:\/\/api\.revenuecat\.com\/.+\
 ^https?:\/\/[\w-]+\.googlevideo\.com\/initplayback.+&oad data-type=text data="" status-code=200
 
 [MITM]
-# Đã sửa lại để bao phủ cả spclient.wg và gae2-spclient từ log của bạn
 hostname = %APPEND%, *.googlevideo.com, youtubei.googleapis.com, api.revenuecat.com, api-mobile.soundcloud.com, *spclient.wg.spotify.com, *gae2-spclient.spotify.com, ucs.spotify.com
